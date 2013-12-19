@@ -3,8 +3,6 @@ import re
 
 from sqlalchemy import engine_from_config, orm
 
-from hashlib import md5
-
 from ..defaults import get_default_db_uri
 from .tables import Language, metadata
 from .multilang import MultilangSession, MultilangScopedSession
@@ -46,20 +44,6 @@ def connect(uri=None, session_args={}, engine_args={}, engine_prefix=''):
         # set of exclusions from it, which I don't know)
         if 'auto_setinputsizes' not in uri:
             uri += '?auto_setinputsizes=FALSE'
-
-        # Shorten table names, Oracle limits table and column names to 30 chars
-        # Easy solution : drop the vowels, differents words are unlikely to
-        # end up the same after the vowels are gone
-        try:
-            # Check we haven't already shortened the names
-            metadata.tables.values()[1]._original_name
-        except NameError:
-            for table in metadata.tables.values():
-                table._orginal_name = table.name[:]
-                if len(table.name) > 30:
-                    for letter in ['a', 'e', 'i', 'o', 'u', 'y']:
-                        table.name=table.name.replace(letter,'')
-
 
     ### Connect
     engine_args[engine_prefix + 'url'] = uri

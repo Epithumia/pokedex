@@ -7,8 +7,6 @@ import sys
 import sqlalchemy.sql.util
 import sqlalchemy.types
 
-from hashlib import md5
-
 import pokedex
 from pokedex.db import metadata, tables, translations
 from pokedex.defaults import get_default_csv_dir
@@ -139,22 +137,6 @@ def load(session, tables=[], directory=None, drop_tables=False, verbose=False, s
     # XXX why isn't this done in command_load
     table_names = _get_table_names(metadata, tables)
     table_objs = [metadata.tables[name] for name in table_names]
-
-    # Oracle fixery again, load doesn't know we modified the schema
-    # flag for oracle stuff
-    oranames = (session.connection().dialect.name == 'oracle')
-    if oranames:
-        # Prepare a dictionary to match old<->new names
-        oradict = {}
-
-        # Shorten table names, Oracle limits table and column names to 30 chars
-        for table in table_objs:
-            table._orginal_name = table.name[:]
-            oradict[table.name]=table._orginal_name
-            if len(table._orginal_name) > 30:
-                for letter in ['a', 'e', 'i', 'o', 'u', 'y']:
-                    table.name=table.name.replace(letter,'')
-                oradict[table.name]=table._orginal_name
                 
     if recursive:
         table_objs.extend(find_dependent_tables(table_objs))
